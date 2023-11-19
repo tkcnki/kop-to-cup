@@ -42,7 +42,7 @@ func CopyFrom(dest interface{}, src interface{}, tfmt ...TimeFormat) error {
 			if destField := destValue.FieldByName(srcValue.Type().Field(i).Tag.Get("kopcup-alias")); destField.IsValid() {
 				destField.Set(convertDestToSrcType(destField, srcField, tf[0]))
 			} else if destField := destValue.FieldByName(srcValue.Type().Field(i).Name); destField.IsValid() {
-				destField.Set(convertDestToSrcType(destField, srcField))
+				destField.Set(convertDestToSrcType(destField, srcField, tf[0]))
 			}
 		}(i)
 	}
