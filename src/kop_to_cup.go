@@ -57,6 +57,8 @@ func convertDestToSrcType(destField reflect.Value, srcField reflect.Value, tfmt 
 			return reflect.ValueOf(convertToString(srcField))
 		case reflect.TypeOf(1):
 			return reflect.ValueOf(convertToInt(srcField))
+		case reflect.TypeOf(3.14):
+			return reflect.ValueOf(convertToFloat(srcField))
 		case reflect.TypeOf(time.Time{}):
 			return reflect.ValueOf(convertToTime(srcField, tfmt...))
 		}
@@ -74,7 +76,7 @@ func convertToString(srcField reflect.Value, tfmt ...TimeFormat) string {
 	case reflect.TypeOf(true):
 		return strconv.FormatBool(srcField.Interface().(bool))
 	default:
-		panic(errors.New("convert error"))
+		panic(errors.New("convert error: cannot convert to string type"))
 	}
 }
 
@@ -87,13 +89,12 @@ func convertToInt(srcField reflect.Value) int {
 			return val
 		}
 	case reflect.TypeOf(true):
-		src := 0
 		if srcField.Interface().(bool) {
-			src = 1
+			return 1
 		}
-		return src
+		return 0
 	default:
-		panic(errors.New("convert error"))
+		panic(errors.New("convert error: cannot convert to int type"))
 	}
 
 }
@@ -105,11 +106,31 @@ func convertToTime(srcField reflect.Value, tfmt ...TimeFormat) time.Time {
 	case reflect.TypeOf(""):
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		if t, err := time.ParseInLocation(tfmt[0].String(), srcField.Interface().(string), jst); err != nil {
-			panic(errors.New("convert error"))
+			panic(errors.New("convert error: time perse err"))
 		} else {
 			return t
 		}
 	default:
-		panic(errors.New("convert error"))
+		panic(errors.New("convert error: cannot convert to time type"))
+	}
+}
+
+func convertToFloat(srcField reflect.Value) float64 {
+	switch srcField.Type() {
+	case reflect.TypeOf(int(1)):
+		return float64(srcField.Interface().(int))
+	case reflect.TypeOf(""):
+		if f, err := strconv.ParseFloat(srcField.Interface().(string), 64); err != nil {
+			panic(errors.New("convert error"))
+		} else {
+			return f
+		}
+	case reflect.TypeOf(true):
+		if srcField.Interface().(bool) {
+			return 1.0
+		}
+		return 0.0
+	default:
+		panic(errors.New("convert error: cannot convert to float64 type"))
 	}
 }

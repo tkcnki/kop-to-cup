@@ -201,6 +201,7 @@ type SourceStruct struct {
 }
 
 type DestinationStruct struct {
+	FloatField       float64
 	DestStringField  string
 	DestIntField     int
 	TimeField        time.Time
@@ -275,6 +276,7 @@ type SourceStruct2 struct {
 	FieldInt    int       `kopcup-alias:"AliasInt"`
 	FieldBool   bool      `kopcup-alias:"AliasBool"`
 	FieldTime   time.Time `kopcup-alias:"AliasTime" kopcup-dateformat:"2006-01-02T15:04:05"`
+	Float       string
 	// Add more fields as needed
 }
 
@@ -283,6 +285,7 @@ type DestinationStruct2 struct {
 	AliasInt    int
 	AliasBool   bool
 	AliasTime   time.Time
+	Float       float64
 	// Add more fields as needed
 }
 
@@ -298,9 +301,9 @@ func TestCopyFrom2(t *testing.T) {
 	}{
 		{
 			Name:       "CopyFields",
-			Src:        SourceStruct2{FieldString: "TestString", FieldInt: 42, FieldBool: true, FieldTime: now},
+			Src:        SourceStruct2{FieldString: "TestString", FieldInt: 42, FieldBool: true, FieldTime: now, Float: "3.14"},
 			Dest:       DestinationStruct2{},
-			Expected:   DestinationStruct2{AliasString: "TestString", AliasInt: 42, AliasBool: true, AliasTime: now},
+			Expected:   DestinationStruct2{AliasString: "TestString", AliasInt: 42, AliasBool: true, AliasTime: now, Float: 3.14},
 			TimeFormat: RFC3339A,
 		},
 		// Add more test cases as needed
@@ -328,6 +331,40 @@ func TestCopyFrom2(t *testing.T) {
 
 			if !reflect.DeepEqual(dest, tc.Expected) {
 				t.Errorf("Unexpected result. Got: %+v, Expected: %+v", dest, tc.Expected)
+			}
+		})
+	}
+}
+
+func TestConvertToFloat(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    interface{}
+		expected float64
+		panics   bool // このケースでパニックが期待されているか
+	}{
+		{"ConvertInt", 42, 42.0, false},
+		{"ConvertString", "3.14", 3.14, false},
+		{"ConvertBoolTrue", true, 1.0, false},
+		{"ConvertBoolFalse", false, 0.0, false},
+		{"ConvertInvalidType", "invalid type", 0.0, true}, // このケースではパニックが期待されます
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			defer func() {
+				if test.panics {
+					if r := recover(); r == nil {
+						t.Errorf("Expected a panic, but didn't get one")
+					}
+				}
+			}()
+
+			result := convertToFloat(reflect.ValueOf(test.input))
+
+			// 期待される結果と実際の結果を比較
+			if result != test.expected && !test.panics {
+				t.Errorf("Expected: %f, Got: %f", test.expected, result)
 			}
 		})
 	}
