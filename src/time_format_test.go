@@ -10,14 +10,14 @@ func TestTimeFormatString(t *testing.T) {
 		Input    TimeFormat
 		Expected string
 	}{
-		{Input: RFC3339A, Expected: time.RFC3339},
-		{Input: RFC3339ANano, Expected: time.RFC3339Nano},
-		{Input: RFC3339B, Expected: "2006-01-02T15:04:05+07:00"},
-		{Input: RFC3339BNano, Expected: "2006-01-02T15:04:05.999999999+07:00"},
-		{Input: RFC3339C, Expected: "2006/01/02T15:04:05+07:00"},
-		{Input: RFC3339CNano, Expected: "2006/01/02T15:04:05.999999999+07:00"},
-		{Input: RFC3339Block, Expected: "20060102150405+07:00"},
-		{Input: RFC3339BlockNano, Expected: "20060102150405.999999999+07:00"},
+		{Input: RFC3339, Expected: time.RFC3339},
+		{Input: RFC3339Nano, Expected: time.RFC3339Nano},
+		{Input: RFC3339, Expected: "2006-01-02T15:04:05Z07:00"},
+		{Input: RFC3339Nano, Expected: "2006-01-02T15:04:05.999999999Z07:00"},
+		{Input: RFC3339B, Expected: "2006/01/02T15:04:05Z07:00"},
+		{Input: RFC3339BNano, Expected: "2006/01/02T15:04:05.999999999Z07:00"},
+		{Input: RFC3339Block, Expected: "20060102150405Z07:00"},
+		{Input: RFC3339BlockNano, Expected: "20060102150405.999999999Z07:00"},
 		{Input: DateTime, Expected: time.DateTime},
 		{Input: DateOnlyA, Expected: time.DateOnly},
 		{Input: DateOnlyB, Expected: "2006/01/02"},
@@ -43,14 +43,14 @@ func TestStrToTimeFormat(t *testing.T) {
 		Expected   TimeFormat
 		ShouldFail bool
 	}{
-		{Input: "2006-01-02T15:04:05Z07:00", Expected: RFC3339A},
-		{Input: "2006-01-02T15:04:05.999999999Z07:00", Expected: RFC3339ANano},
-		{Input: "2006-01-02T15:04:05+07:00", Expected: RFC3339B},
-		{Input: "2006-01-02T15:04:05.999999999+07:00", Expected: RFC3339BNano},
-		{Input: "2006/01/02T15:04:05+07:00", Expected: RFC3339C},
-		{Input: "2006/01/02T15:04:05.999999999+07:00", Expected: RFC3339CNano},
-		{Input: "20060102150405+07:00", Expected: RFC3339Block},
-		{Input: "20060102150405.999999999+07:00", Expected: RFC3339BlockNano},
+		{Input: "2006-01-02T15:04:05Z07:00", Expected: RFC3339},
+		{Input: "2006-01-02T15:04:05.999999999Z07:00", Expected: RFC3339Nano},
+		{Input: "2006-01-02T15:04:05Z07:00", Expected: RFC3339},
+		{Input: "2006-01-02T15:04:05.999999999Z07:00", Expected: RFC3339Nano},
+		{Input: "2006/01/02T15:04:05Z07:00", Expected: RFC3339B},
+		{Input: "2006/01/02T15:04:05.999999999Z07:00", Expected: RFC3339BNano},
+		{Input: "20060102150405Z07:00", Expected: RFC3339Block},
+		{Input: "20060102150405.999999999Z07:00", Expected: RFC3339BlockNano},
 		{Input: "15:04:05", Expected: TimeOnlyA},
 		{Input: "2006/01/02", Expected: DateOnlyB},
 		{Input: "20060102", Expected: DateOnlyBlock},
@@ -84,12 +84,12 @@ func TestIsValueInTimeFormat(t *testing.T) {
 		Input    TimeFormat
 		Expected bool
 	}{
-		{Input: RFC3339A, Expected: true},
-		{Input: RFC3339ANano, Expected: true},
+		{Input: RFC3339, Expected: true},
+		{Input: RFC3339Nano, Expected: true},
+		{Input: RFC3339, Expected: true},
+		{Input: RFC3339Nano, Expected: true},
 		{Input: RFC3339B, Expected: true},
 		{Input: RFC3339BNano, Expected: true},
-		{Input: RFC3339C, Expected: true},
-		{Input: RFC3339CNano, Expected: true},
 		{Input: RFC3339Block, Expected: true},
 		{Input: RFC3339BlockNano, Expected: true},
 		{Input: DateTime, Expected: true},

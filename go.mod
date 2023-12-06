@@ -1,3 +1,3 @@
-module kop-to-cup
+module github.com/tkcnki/kop-to-cup
 
 go 1.21.4

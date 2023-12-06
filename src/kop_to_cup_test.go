@@ -16,7 +16,7 @@ func TestConvertToTime(t *testing.T) {
 
 	// テストデータ
 	intField := reflect.ValueOf(1637277000)                          // Unix timestamp: 2021-11-19 12:30:00
-	stringField := reflect.ValueOf("2021-11-19T12:30:00+07:00")      // RFC3339 formatted string
+	stringField := reflect.ValueOf("2021-11-19T12:30:00+09:00")      // RFC3339 formatted string
 	invalidTypeField := reflect.ValueOf(3.14)                        // Invalid type (float64)
 	invalidValueField := reflect.ValueOf("invalidDateString")        // Invalid date string
 	missingTimeFormatField := reflect.ValueOf("2021-11-19T12:30:00") // Missing time format
@@ -39,7 +39,7 @@ func TestConvertToTime(t *testing.T) {
 				}
 			}()
 
-			result := convertToTime(tc.SrcField, RFC3339B)
+			result := convertToTime(tc.SrcField, RFC3339)
 
 			if tc.ShouldFail {
 				t.Error("Expected an error, but got none.")
@@ -102,7 +102,7 @@ func TestConvertToString(t *testing.T) {
 		{Input: reflect.ValueOf(42), Expected: "42"},
 		{Input: reflect.ValueOf(true), Expected: "true"},
 		{Input: reflect.ValueOf(false), Expected: "false"},
-		{Input: reflect.ValueOf(time.Date(2021, 11, 19, 12, 30, 0, 0, time.UTC)), Expected: "2021-11-19T12:30:00Z", TimeFormat: RFC3339A},
+		{Input: reflect.ValueOf(time.Date(2021, 11, 19, 12, 30, 0, 0, time.UTC)), Expected: "2021-11-19T12:30:00Z", TimeFormat: RFC3339},
 		{Input: reflect.ValueOf("test"), ShouldPanic: true},                         // Invalid type
 		{Input: reflect.ValueOf(3.14), ShouldPanic: true},                           // Invalid type
 		{Input: reflect.ValueOf(time.Now()), ShouldPanic: true},                     // Missing time format
@@ -304,7 +304,7 @@ func TestCopyFrom2(t *testing.T) {
 			Src:        SourceStruct2{FieldString: "TestString", FieldInt: 42, FieldBool: true, FieldTime: now, Float: "3.14"},
 			Dest:       DestinationStruct2{},
 			Expected:   DestinationStruct2{AliasString: "TestString", AliasInt: 42, AliasBool: true, AliasTime: now, Float: 3.14},
-			TimeFormat: RFC3339A,
+			TimeFormat: RFC3339,
 		},
 		// Add more test cases as needed
 	}
