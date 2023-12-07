@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	tFmt "github.com/tkcnki/kop-to-cup/time_format"
 )
 
 /*
@@ -15,7 +17,7 @@ import (
   - &src コピー元ポインタ
   - tfmt タグで指定されていない場合のデフォルト日付フォーマット（省略時"2006-01-02T15:04:05+09:00")
 */
-func CopyFrom(dest interface{}, src interface{}, tfmt ...TimeFormat) error {
+func CopyFrom(dest interface{}, src interface{}, tfmt ...tFmt.TimeFormat) error {
 	destValue := reflect.ValueOf(dest).Elem()
 	srcValue := reflect.ValueOf(src).Elem()
 	defer func() error {
@@ -28,13 +30,17 @@ func CopyFrom(dest interface{}, src interface{}, tfmt ...TimeFormat) error {
 	var wg sync.WaitGroup
 	for i := 0; i < srcValue.NumField(); i++ {
 		wg.Add(1)
-		tf := []TimeFormat{RFC3339B}
+		tf := []tFmt.TimeFormat{tFmt.RFC3339B}
 		if len(tfmt) != 0 {
 			tf[0] = tfmt[0]
 		}
 		srcField := srcValue.Field(i)
 		if formatter := srcValue.Type().Field(i).Tag.Get("kopcup-dateformat"); formatter != "" {
-			tf[0] = TimeFormat(formatter)
+			if t, err := tFmt.StrToTimeFormat(formatter); err != nil {
+				return err
+			} else {
+				tf[0] = t
+			}
 		}
 
 		go func(i int) {
@@ -50,7 +56,7 @@ func CopyFrom(dest interface{}, src interface{}, tfmt ...TimeFormat) error {
 	return nil
 }
 
-func convertDestToSrcType(destField reflect.Value, srcField reflect.Value, tfmt ...TimeFormat) reflect.Value {
+func convertDestToSrcType(destField reflect.Value, srcField reflect.Value, tfmt ...tFmt.TimeFormat) reflect.Value {
 	if destField.Type() != srcField.Type() {
 		switch destField.Type() {
 		case reflect.TypeOf(""):
@@ -67,7 +73,7 @@ func convertDestToSrcType(destField reflect.Value, srcField reflect.Value, tfmt 
 
 }
 
-func convertToString(srcField reflect.Value, tfmt ...TimeFormat) string {
+func convertToString(srcField reflect.Value, tfmt ...tFmt.TimeFormat) string {
 	switch srcField.Type() {
 	case reflect.TypeOf(int(1)):
 		return strconv.Itoa(srcField.Interface().(int))
@@ -99,7 +105,7 @@ func convertToInt(srcField reflect.Value) int {
 
 }
 
-func convertToTime(srcField reflect.Value, tfmt ...TimeFormat) time.Time {
+func convertToTime(srcField reflect.Value, tfmt ...tFmt.TimeFormat) time.Time {
 	switch srcField.Type() {
 	case reflect.TypeOf(int(1)):
 		return time.Unix(int64(srcField.Interface().(int)), 0)

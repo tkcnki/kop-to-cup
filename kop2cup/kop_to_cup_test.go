@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	tFmt "github.com/tkcnki/kop-to-cup/time_format"
 )
 
 func TestConvertToTime(t *testing.T) {
@@ -39,7 +41,7 @@ func TestConvertToTime(t *testing.T) {
 				}
 			}()
 
-			result := convertToTime(tc.SrcField, RFC3339)
+			result := convertToTime(tc.SrcField, tFmt.RFC3339)
 
 			if tc.ShouldFail {
 				t.Error("Expected an error, but got none.")
@@ -95,14 +97,14 @@ func TestConvertToString(t *testing.T) {
 	testCases := []struct {
 		Input       reflect.Value
 		Expected    string
-		TimeFormat  TimeFormat
+		TimeFormat  tFmt.TimeFormat
 		ShouldFail  bool
 		ShouldPanic bool
 	}{
 		{Input: reflect.ValueOf(42), Expected: "42"},
 		{Input: reflect.ValueOf(true), Expected: "true"},
 		{Input: reflect.ValueOf(false), Expected: "false"},
-		{Input: reflect.ValueOf(time.Date(2021, 11, 19, 12, 30, 0, 0, time.UTC)), Expected: "2021-11-19T12:30:00Z", TimeFormat: RFC3339},
+		{Input: reflect.ValueOf(time.Date(2021, 11, 19, 12, 30, 0, 0, time.UTC)), Expected: "2021-11-19T12:30:00Z", TimeFormat: tFmt.RFC3339},
 		{Input: reflect.ValueOf("test"), ShouldPanic: true},                         // Invalid type
 		{Input: reflect.ValueOf(3.14), ShouldPanic: true},                           // Invalid type
 		{Input: reflect.ValueOf(time.Now()), ShouldPanic: true},                     // Missing time format
@@ -141,7 +143,7 @@ func TestConvertDestToSrcType(t *testing.T) {
 		SrcType     reflect.Type
 		DestValue   interface{}
 		SrcValue    interface{}
-		TimeFormat  TimeFormat
+		TimeFormat  tFmt.TimeFormat
 		Expected    interface{}
 		ShouldPanic bool
 	}{
@@ -296,7 +298,7 @@ func TestCopyFrom2(t *testing.T) {
 		Src        interface{}
 		Dest       interface{}
 		Expected   interface{}
-		TimeFormat TimeFormat
+		TimeFormat tFmt.TimeFormat
 		ShouldFail bool
 	}{
 		{
@@ -304,7 +306,7 @@ func TestCopyFrom2(t *testing.T) {
 			Src:        SourceStruct2{FieldString: "TestString", FieldInt: 42, FieldBool: true, FieldTime: now, Float: "3.14"},
 			Dest:       DestinationStruct2{},
 			Expected:   DestinationStruct2{AliasString: "TestString", AliasInt: 42, AliasBool: true, AliasTime: now, Float: 3.14},
-			TimeFormat: RFC3339,
+			TimeFormat: tFmt.RFC3339,
 		},
 		// Add more test cases as needed
 	}
