@@ -1,4 +1,4 @@
-package kop2cup
+package timeFormat
 
 import (
 	"errors"
