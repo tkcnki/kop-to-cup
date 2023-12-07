@@ -181,22 +181,22 @@ func TestConvertDestToSrcType(t *testing.T) {
 type SourceStruct struct {
 	StringField  string    `kopcup-alias:"DestStringField"`
 	IntField     int       `kopcup-alias:"DestIntField"`
-	TimeField    time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z"`
+	TimeField    time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	StringField1 string    `kopcup-alias:"DestStringField1"`
 	IntField1    int       `kopcup-alias:"DestIntField1"`
-	TimeField1   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z"`
+	TimeField1   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	StringField2 string    `kopcup-alias:"DestStringField2"`
 	IntField2    int       `kopcup-alias:"DestIntField2"`
-	TimeField2   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z"`
+	TimeField2   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	StringField3 string    `kopcup-alias:"DestStringField3"`
 	IntField3    int       `kopcup-alias:"DestIntField3"`
-	TimeField3   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z"`
+	TimeField3   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	StringField4 string    `kopcup-alias:"DestStringField4"`
 	IntField4    int       `kopcup-alias:"DestIntField4"`
-	TimeField4   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z"`
+	TimeField4   time.Time `kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	StringField5 string    `kopcup-alias:"DestStringField5"`
 	IntField5    int       `kopcup-alias:"DestIntField5"`
-	TimeField5   time.Time `kopcup-alias:"TimeField6" kopcup-dateformat:"2006-01-02T15:04:05Z"`
+	TimeField5   time.Time `kopcup-alias:"TimeField6" kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	StringField6 string
 	IntField6    int
 	TimeField6   time.Time
@@ -274,17 +274,19 @@ func TestCopyFrom(t *testing.T) {
 }
 
 type SourceStruct2 struct {
-	FieldString string    `kopcup-alias:"AliasString" kopcup-dateformat:"2006-01-02T15:04:05"`
+	FieldString string    `kopcup-alias:"AliasString" kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	FieldInt    int       `kopcup-alias:"AliasInt"`
 	FieldBool   bool      `kopcup-alias:"AliasBool"`
-	FieldTime   time.Time `kopcup-alias:"AliasTime" kopcup-dateformat:"2006-01-02T15:04:05"`
+	FieldTime   time.Time `kopcup-alias:"AliasTime" kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	Float       string
 	// Add more fields as needed
 }
 
+type myInt int
+
 type DestinationStruct2 struct {
 	AliasString string
-	AliasInt    int
+	AliasInt    myInt
 	AliasBool   bool
 	AliasTime   time.Time
 	Float       float64
@@ -315,7 +317,7 @@ func TestCopyFrom2(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			src := tc.Src.(SourceStruct2)
 			dest := tc.Dest.(DestinationStruct2)
-			err := CopyFrom(&dest, &src, tc.TimeFormat)
+			err := CopyFrom(&dest, &src, tFmt.RFC3339)
 
 			if tc.ShouldFail {
 				if err == nil {

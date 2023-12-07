@@ -46,9 +46,9 @@ func CopyFrom(dest interface{}, src interface{}, tfmt ...tFmt.TimeFormat) error 
 		go func(i int) {
 			defer wg.Done()
 			if destField := destValue.FieldByName(srcValue.Type().Field(i).Tag.Get("kopcup-alias")); destField.IsValid() {
-				destField.Set(convertDestToSrcType(destField, srcField, tf[0]))
+				destField.Set(convertDestToSrcType(destField, srcField, tf[0]).Convert(destField.Type()))
 			} else if destField := destValue.FieldByName(srcValue.Type().Field(i).Name); destField.IsValid() {
-				destField.Set(convertDestToSrcType(destField, srcField, tf[0]))
+				destField.Set(convertDestToSrcType(destField, srcField, tf[0]).Convert(destField.Type()))
 			}
 		}(i)
 	}
@@ -57,15 +57,15 @@ func CopyFrom(dest interface{}, src interface{}, tfmt ...tFmt.TimeFormat) error 
 }
 
 func convertDestToSrcType(destField reflect.Value, srcField reflect.Value, tfmt ...tFmt.TimeFormat) reflect.Value {
-	if destField.Type() != srcField.Type() {
-		switch destField.Type() {
-		case reflect.TypeOf(""):
+	if destField.Type().Kind() != srcField.Type().Kind() {
+		switch destField.Type().Kind() {
+		case reflect.TypeOf("").Kind():
 			return reflect.ValueOf(convertToString(srcField))
-		case reflect.TypeOf(1):
+		case reflect.TypeOf(1).Kind():
 			return reflect.ValueOf(convertToInt(srcField))
-		case reflect.TypeOf(3.14):
+		case reflect.TypeOf(3.14).Kind():
 			return reflect.ValueOf(convertToFloat(srcField))
-		case reflect.TypeOf(time.Time{}):
+		case reflect.TypeOf(time.Time{}).Kind():
 			return reflect.ValueOf(convertToTime(srcField, tfmt...))
 		}
 	}
@@ -74,12 +74,12 @@ func convertDestToSrcType(destField reflect.Value, srcField reflect.Value, tfmt 
 }
 
 func convertToString(srcField reflect.Value, tfmt ...tFmt.TimeFormat) string {
-	switch srcField.Type() {
-	case reflect.TypeOf(int(1)):
+	switch srcField.Type().Kind() {
+	case reflect.TypeOf(int(1)).Kind():
 		return strconv.Itoa(srcField.Interface().(int))
-	case reflect.TypeOf(time.Time{}):
+	case reflect.TypeOf(time.Time{}).Kind():
 		return srcField.Interface().(time.Time).Format(tfmt[0].String())
-	case reflect.TypeOf(true):
+	case reflect.TypeOf(true).Kind():
 		return strconv.FormatBool(srcField.Interface().(bool))
 	default:
 		panic(errors.New("convert error: cannot convert to string type"))
@@ -87,14 +87,14 @@ func convertToString(srcField reflect.Value, tfmt ...tFmt.TimeFormat) string {
 }
 
 func convertToInt(srcField reflect.Value) int {
-	switch srcField.Type() {
-	case reflect.TypeOf(""):
+	switch srcField.Type().Kind() {
+	case reflect.TypeOf("").Kind():
 		if val, err := strconv.Atoi(srcField.Interface().(string)); err != nil {
 			panic(err)
 		} else {
 			return val
 		}
-	case reflect.TypeOf(true):
+	case reflect.TypeOf(true).Kind():
 		if srcField.Interface().(bool) {
 			return 1
 		}
@@ -106,10 +106,10 @@ func convertToInt(srcField reflect.Value) int {
 }
 
 func convertToTime(srcField reflect.Value, tfmt ...tFmt.TimeFormat) time.Time {
-	switch srcField.Type() {
-	case reflect.TypeOf(int(1)):
+	switch srcField.Type().Kind() {
+	case reflect.TypeOf(int(1)).Kind():
 		return time.Unix(int64(srcField.Interface().(int)), 0)
-	case reflect.TypeOf(""):
+	case reflect.TypeOf("").Kind():
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		if t, err := time.ParseInLocation(tfmt[0].String(), srcField.Interface().(string), jst); err != nil {
 			panic(errors.New("convert error: time perse err"))
@@ -122,16 +122,16 @@ func convertToTime(srcField reflect.Value, tfmt ...tFmt.TimeFormat) time.Time {
 }
 
 func convertToFloat(srcField reflect.Value) float64 {
-	switch srcField.Type() {
-	case reflect.TypeOf(int(1)):
+	switch srcField.Type().Kind() {
+	case reflect.TypeOf(int(1)).Kind():
 		return float64(srcField.Interface().(int))
-	case reflect.TypeOf(""):
+	case reflect.TypeOf("").Kind():
 		if f, err := strconv.ParseFloat(srcField.Interface().(string), 64); err != nil {
 			panic(errors.New("convert error"))
 		} else {
 			return f
 		}
-	case reflect.TypeOf(true):
+	case reflect.TypeOf(true).Kind():
 		if srcField.Interface().(bool) {
 			return 1.0
 		}
