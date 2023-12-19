@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
-	tFmt "github.com/tkcnki/kop-to-cup/time_format"
+	tFmt "github.com/enecom-kaisa/kop-to-cup/time_format"
 )
 
 /*
@@ -16,6 +17,7 @@ import (
   - &dest コピー先ポインタ
   - &src コピー元ポインタ
   - tfmt タグで指定されていない場合のデフォルト日付フォーマット（省略時"2006-01-02T15:04:05+09:00")
+  - intからboolへの変換仕様「true :0以外 / false :0」
 */
 func CopyFrom(dest interface{}, src interface{}, tfmt ...tFmt.TimeFormat) error {
 	destValue := reflect.ValueOf(dest).Elem()
@@ -65,6 +67,8 @@ func convertDestToSrcType(destField reflect.Value, srcField reflect.Value, tfmt 
 			return reflect.ValueOf(convertToInt(srcField))
 		case reflect.TypeOf(3.14).Kind():
 			return reflect.ValueOf(convertToFloat(srcField))
+		case reflect.TypeOf(true).Kind():
+			return reflect.ValueOf(convertToBool(srcField))
 		case reflect.TypeOf(time.Time{}).Kind():
 			return reflect.ValueOf(convertToTime(srcField, tfmt...))
 		}
@@ -138,5 +142,25 @@ func convertToFloat(srcField reflect.Value) float64 {
 		return 0.0
 	default:
 		panic(errors.New("convert error: cannot convert to float64 type"))
+	}
+}
+
+func convertToBool(srcField reflect.Value) bool {
+	switch srcField.Type().Kind() {
+	case reflect.TypeOf(int(1)).Kind():
+		if srcField.Interface().(int) != 0 {
+			return true
+		}
+		return false
+	case reflect.TypeOf("").Kind():
+		if strings.EqualFold(srcField.Interface().(string), "true") {
+			return true
+		} else if strings.EqualFold(srcField.Interface().(string), "false") {
+			return false
+		} else {
+			panic(errors.New("convert error: cannot convert to bool type"))
+		}
+	default:
+		panic(errors.New("convert error: cannot convert to bool type"))
 	}
 }

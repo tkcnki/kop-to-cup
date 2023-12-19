@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	tFmt "github.com/tkcnki/kop-to-cup/time_format"
+	tFmt "github.com/enecom-kaisa/kop-to-cup/time_format"
 )
 
 func TestConvertToTime(t *testing.T) {
@@ -276,7 +276,7 @@ func TestCopyFrom(t *testing.T) {
 type SourceStruct2 struct {
 	FieldString string    `kopcup-alias:"AliasString" kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	FieldInt    int       `kopcup-alias:"AliasInt"`
-	FieldBool   bool      `kopcup-alias:"AliasBool"`
+	FieldBool   string    `kopcup-alias:"AliasBool"`
 	FieldTime   time.Time `kopcup-alias:"AliasTime" kopcup-dateformat:"2006-01-02T15:04:05Z07:00"`
 	Float       string
 	// Add more fields as needed
@@ -305,9 +305,9 @@ func TestCopyFrom2(t *testing.T) {
 	}{
 		{
 			Name:       "CopyFields",
-			Src:        SourceStruct2{FieldString: "TestString", FieldInt: 42, FieldBool: true, FieldTime: now, Float: "3.14"},
+			Src:        SourceStruct2{FieldString: "TestString", FieldInt: 42, FieldBool: "False", FieldTime: now, Float: "3.14"},
 			Dest:       DestinationStruct2{},
-			Expected:   DestinationStruct2{AliasString: "TestString", AliasInt: 42, AliasBool: true, AliasTime: now, Float: 3.14},
+			Expected:   DestinationStruct2{AliasString: "TestString", AliasInt: 42, AliasBool: false, AliasTime: now, Float: 3.14},
 			TimeFormat: tFmt.RFC3339,
 		},
 		// Add more test cases as needed
@@ -334,7 +334,7 @@ func TestCopyFrom2(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(dest, tc.Expected) {
-				t.Errorf("Unexpected result. Got: %+v, Expected: %+v", dest, tc.Expected)
+				t.Errorf("Unexpected result. \n      Got: %+v\n Expected: %+v", dest, tc.Expected)
 			}
 		})
 	}
@@ -369,6 +369,42 @@ func TestConvertToFloat(t *testing.T) {
 			// 期待される結果と実際の結果を比較
 			if result != test.expected && !test.panics {
 				t.Errorf("Expected: %f, Got: %f", test.expected, result)
+			}
+		})
+	}
+}
+
+func TestConvertToBool(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    interface{}
+		expected bool
+		panics   bool // このケースでパニックが期待されているか
+	}{
+		{"ConvertIntTrue", 100, true, false},
+		{"ConvertIntFalse", 0, false, false},
+		{"ConvertString", "true", true, false},
+		{"ConvertString", "True", true, false},
+		{"ConvertString", "false", false, false},
+		{"ConvertString", "False", false, false},
+		{"ConvertInvalidType", "invalid type", true, true}, // このケースではパニックが期待されます
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			defer func() {
+				if test.panics {
+					if r := recover(); r == nil {
+						t.Errorf("Expected a panic, but didn't get one")
+					}
+				}
+			}()
+
+			result := convertToBool(reflect.ValueOf(test.input))
+
+			// 期待される結果と実際の結果を比較
+			if result != test.expected && !test.panics {
+				t.Errorf("Expected: %v, Got: %v", test.expected, result)
 			}
 		})
 	}
